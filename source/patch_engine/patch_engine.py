@@ -262,6 +262,11 @@ class PatchEngine:
                 case PatchEvent.PORT_REMOVED:
                     port = self.ports.from_name(event_arg) #type:ignore
                     if port is not None:
+                        for conn in [c for c in self.connections
+                                     if port.name in c]:
+                            self.connections.remove(conn)
+                            self.peo.connection_removed(conn)
+
                         self.ports.remove(port)
                         self.peo.port_removed(port.name)
 
@@ -273,6 +278,8 @@ class PatchEngine:
 
                 case PatchEvent.CONNECTION_ADDED:
                     conn: tuple[str, str] = event_arg #type:ignore
+                    if conn in self.connections:
+                        continue
                     self.connections.append(conn)
                     self.peo.connection_added(conn)
 
